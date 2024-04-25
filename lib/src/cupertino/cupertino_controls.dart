@@ -117,7 +117,12 @@ class _CupertinoControlsState extends State<CupertinoControls>
                       ),
                       child: _buildSubtitles(chewieController.subtitle!),
                     ),
-                  _buildBottomBar(backgroundColor, iconColor, barHeight),
+                  _buildBottomBar(
+                    backgroundColor,
+                    iconColor,
+                    barHeight,
+                    buttonPadding,
+                  ),
                 ],
               ),
             ],
@@ -243,6 +248,7 @@ class _CupertinoControlsState extends State<CupertinoControls>
     Color backgroundColor,
     Color iconColor,
     double barHeight,
+    double buttonPadding,
   ) {
     return SafeArea(
       bottom: chewieController.isFullScreen,
@@ -283,6 +289,13 @@ class _CupertinoControlsState extends State<CupertinoControls>
                           _buildSubtitleToggle(iconColor, barHeight),
                           if (chewieController.allowPlaybackSpeedChanging)
                             _buildSpeedButton(controller, iconColor, barHeight),
+                          if (chewieController.allowFullScreen)
+                            _buildExpandButton(
+                              backgroundColor,
+                              iconColor,
+                              barHeight,
+                              buttonPadding,
+                            ),
                           if (chewieController.additionalOptions != null &&
                               chewieController
                                   .additionalOptions!(context).isNotEmpty)
@@ -367,6 +380,44 @@ class _CupertinoControlsState extends State<CupertinoControls>
         isPlaying: controller.value.isPlaying,
         show: showPlayButton,
         onPressed: _playPause,
+      ),
+    );
+  }
+
+  Widget _buildCloseButton(
+    Color backgroundColor,
+    Color iconColor,
+    double barHeight,
+    double buttonPadding,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        _hideTimer?.cancel();
+        Navigator.pop(context);
+        // chewieController.on?.call();
+      },
+      child: AnimatedOpacity(
+        opacity: notifier.hideStuff ? 0.0 : 1.0,
+        duration: const Duration(milliseconds: 300),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10.0),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 10.0),
+            child: Container(
+              height: barHeight,
+              padding: EdgeInsets.only(
+                left: buttonPadding,
+                right: buttonPadding,
+              ),
+              color: backgroundColor,
+              child: Icon(
+                Icons.close,
+                color: iconColor,
+                size: 16,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -607,13 +658,12 @@ class _CupertinoControlsState extends State<CupertinoControls>
       ),
       child: Row(
         children: <Widget>[
-          if (chewieController.allowFullScreen)
-            _buildExpandButton(
-              backgroundColor,
-              iconColor,
-              barHeight,
-              buttonPadding,
-            ),
+          _buildCloseButton(
+            backgroundColor,
+            iconColor,
+            barHeight,
+            buttonPadding,
+          ),
           const Spacer(),
           if (chewieController.allowMuting)
             _buildMuteButton(
